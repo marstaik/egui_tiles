@@ -321,6 +321,30 @@ impl<Pane> Tree<Pane> {
             preview_rect: None,
         };
 
+        // If the pointer is outside the screen while dragging, disable internal drop calculations:
+        if !behavior.constrain_dragging() {
+            let input = ui.input(|i| {
+                let latest = i.pointer.latest_pos();
+                let screen_rect = i.viewport_rect();
+                let pointer_gone = i
+                    .raw
+                    .events
+                    .iter()
+                    .any(|e| matches!(e, egui::Event::PointerGone));
+                (latest, screen_rect, pointer_gone)
+            });
+            let (latest, screen_rect, pointer_gone) = input;
+
+            let outside = pointer_gone || latest.map_or(true, |p| !screen_rect.contains(p));
+
+            // If cursor is outside while dragging, disable internal drop calculations:
+            if outside && drop_context.dragged_tile_id.is_some() {
+                drop_context.enabled = false;
+                behavior
+                    .on_tab_drag_outside(&mut self.tiles, drop_context.dragged_tile_id.unwrap());
+            }
+        }
+
         let mut rect = ui.available_rect_before_wrap();
         if self.height.is_finite() {
             rect.set_height(self.height);

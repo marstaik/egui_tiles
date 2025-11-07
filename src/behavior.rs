@@ -74,6 +74,17 @@ pub trait Behavior<Pane> {
         2.0
     }
 
+    /// Whether dragging a tab should be constrained to the tree.
+    ///
+    /// If `true`, the dragged tab will always attempt to lock to the closest valid drop target.
+    /// If `false`, the dragged tab will only lock to a drop target while within the tree bounds and padding [`Self::constrain_dragging_padding`].
+    /// If the dragged tab is outside of the tree bounds and padding when dropped, [`EditAction::TileDroppedOutside`] will be triggered.
+    fn constrain_dragging(&self) -> bool {
+        true
+    }
+
+    fn on_tab_drag_outside(&mut self, _tiles: &mut Tiles<Pane>, _tile_id: TileId) {}
+
     /// The title of a general tab.
     ///
     /// The default implementation calls [`Self::tab_title_for_pane`] for panes and
